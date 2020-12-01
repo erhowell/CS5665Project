@@ -3,7 +3,9 @@ import pandas as pd
 import math
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import Image
+
+
+#color mapping
 colors = {
         'QB':'red', # Quarter Back - O
         'RB':'gold', # Running Back aka HB- O
@@ -30,26 +32,25 @@ colors = {
         'Football':'white'
         }
 o_positions = {'QB','RB','HB','WR','TE','FB','P','LS','K'}
+
+# read the tracking data for each week. 
 weeks = list()
-#16-18
-#1-10
-#10-16
-for x in range(1,12):
-    file = 'week'+str(x)+'.csv'
+for x in range(1,17): # up to 17 weeks
+    file = 'week'+str(x)+'.csv' #filename
     weeks.append(pd.read_csv(file))
-    
 weekdf = pd.concat(weeks)
-plays = pd.read_csv('plays.csv')
-
-plays = plays[['gameId', 'playId', 'passResult', 'playDescription']]
-plays = plays[plays.passResult.notnull()]
-plays = plays[plays.passResult != 'C']
-
 weekdf.loc[weekdf.displayName == 'Football', 'position'] = 'Football'
 weekdf = weekdf[['playId','gameId','event','frameId','position','x','y']]
-result = pd.merge(weekdf, plays, on=['gameId','playId'])
 
-#create football field representation
+plays = pd.read_csv('plays.csv') #read plays dataset to dataframe
+plays = plays[['gameId', 'playId', 'passResult']] #these are the columns I need
+plays = plays[plays.passResult.notnull()] # remove rows with null pass results
+
+result = pd.merge(weekdf, plays, on=['gameId','playId']) # join play data and tracking data on gameId and PlayId
+
+#create football field representation 
+#src code for football generation code can be found on
+# https://www.kaggle.com/robikscube/nfl-big-data-bowl-plotting-player-position
 def create_football_field(linenumbers=True,
                           endzones=True,
                           highlight_line=False,
@@ -126,26 +127,21 @@ def create_football_field(linenumbers=True,
     return fig, ax
 
 
-
+#function to plot players on field 
 def saveImg(play, imgID):
   # plot positions
   fig, ax = create_football_field()
   for n, grp in play.sort_values(by='position', ascending=False).groupby("position"):
       marker = ''
-      if n in o_positions:
+      if n in o_positions: #offence is makered by an o
           marker = 'o'
-      elif n == 'Football':
-          marker = '*'
+      elif n == 'Football': 
+          marker = '*' # football is maked by a start
       else:
-          marker = 'P'
+          marker = 'P' # defence is makered by a + 
       grp.plot(x='x', y='y', kind='scatter', ax=ax,marker=marker, color=colors[n], s=200, legend=n)
-  # plot football
-  #plt.title(play1['passResult'].iloc[0]+  ' --- '+play1['playDescription'].iloc[0])
-  #pr = play['passResult'].iloc[0]
-  #plt.title('Example Image \n Pass Result: {0}'.format(pr))
-  plt.savefig('newImgs\\'+str(imgID))
-  Image.PIL.Image.open("sample.png").convert("L").save('bw.png')
-  plt.clf()
+  plt.savefig('newImgs\\'+str(imgID)) #save image
+  plt.clf() #clear and close figure to save memory
   plt.close()
   
   
@@ -173,7 +169,7 @@ for gameId, group in result.groupby('gameId'):
       saveImg(play1,id,cmap='gray')
       ids.append(id)
       values.append(play1['passResult'].iloc[0])
-      break;
+      break
 
 # build dataframe from results
 rows = dict()
