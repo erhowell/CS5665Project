@@ -10,7 +10,10 @@ Due to the large amount of data, you can view all the datasets and generated ima
 ## Code Files
 
 **Image Generation Logic :** //image-generation//main.py
+
 Takes the data from the provided datasets(plays.csv and week csv's) and creates images that represent player positions on a football field. Saves the data labels alongside the image name. 
 
+
 **Deep Learning Model:** NFLNeuralNetwork.ipynb
+
 Classifies images using a CNN   
